@@ -9,6 +9,7 @@ import dev.ivanshamliev.fueltracker.repository.FuelRepository;
 import dev.ivanshamliev.fueltracker.repository.GasStationRepository;
 import dev.ivanshamliev.fueltracker.repository.PriceHistoryRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -16,7 +17,7 @@ import java.security.InvalidParameterException;
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Service @RequiredArgsConstructor
+@Service @RequiredArgsConstructor @Slf4j
 public class FuelServiceImpl implements FuelService{
 
     private final GasStationRepository gasStationRepository;
@@ -60,6 +61,7 @@ public class FuelServiceImpl implements FuelService{
         );
 
         this.fuelRepository.save(fuel);
+        log.info("Record for a new fuel has been created.");
     }
 
     @Override
@@ -71,6 +73,7 @@ public class FuelServiceImpl implements FuelService{
         }
 
         this.fuelRepository.deleteById(id);
+        log.warn("Fuel with id {} has been deleted.", id);
     }
 
     @Override @Transactional
@@ -91,6 +94,7 @@ public class FuelServiceImpl implements FuelService{
             this.priceRepository.save(prHist);
             fuelFromDb.setPricePerLiter(newPrice);
             fuelFromDb.setLastUpdate(LocalDateTime.now());
+            log.warn("Price has been updated to {} , from {} , for fuel with id {}.", oldPrice, newPrice, fuelId);
         }
     }
 
@@ -112,6 +116,8 @@ public class FuelServiceImpl implements FuelService{
         fuelFromDb.setName(fuelUpdateDto.getName());
         fuelFromDb.setGasStation(gasStationFromDb);
         fuelFromDb.setLastUpdate(LocalDateTime.now());
+
+        log.info("Fuel with id {} has been updated.", id);
     }
 
     @Override
@@ -120,7 +126,7 @@ public class FuelServiceImpl implements FuelService{
                 .orElseThrow(() -> new InvalidParameterException("Fuel with the specified id does not exist."));
 
         var history = this.priceRepository.getAllByFuelId(fuelFromDb.getId());
-        
+
         if (history.isEmpty()){
             return new FuelReadDto(
                     fuelFromDb.getId(),

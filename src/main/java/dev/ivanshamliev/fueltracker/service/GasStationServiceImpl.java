@@ -7,13 +7,14 @@ import dev.ivanshamliev.fueltracker.repository.CityRepository;
 import dev.ivanshamliev.fueltracker.repository.FuelRepository;
 import dev.ivanshamliev.fueltracker.repository.GasStationRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.security.InvalidParameterException;
 import java.util.List;
 
-@Service @RequiredArgsConstructor
+@Service @RequiredArgsConstructor @Slf4j
 public class GasStationServiceImpl implements GasStationService{
 
     private final GasStationRepository gasStationRepository;
@@ -46,6 +47,7 @@ public class GasStationServiceImpl implements GasStationService{
     @Override
     public void addGasStation(GasStation gasStation) {
         this.gasStationRepository.save(gasStation);
+        log.info("Record for a new gas station has been created.");
     }
 
     @Override
@@ -56,6 +58,7 @@ public class GasStationServiceImpl implements GasStationService{
         }
 
         this.gasStationRepository.deleteById(id);
+        log.warn("Gas station with id {} has been deleted.", id);
     }
 
     @Override @Transactional
@@ -84,6 +87,7 @@ public class GasStationServiceImpl implements GasStationService{
         }
 
         gasStationFromDb.setLocation(cityFromDb.get());
+        log.info("Gas station with id {} has been updated.", id);
 
     }
 

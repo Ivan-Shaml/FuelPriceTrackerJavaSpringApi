@@ -12,7 +12,7 @@ public interface FuelService {
     Fuel getById(Integer id);
     void addFuel(FuelCreateDto fuelCreateDto);
     void deleteFuel(Integer id);
-    void updatePrice(Double newPrice, Integer fuelId);
+    void updatePrice(Integer fuelId, Double newPrice);
     void updateFuel(Integer id, FuelUpdateDto fuelUpdateDto);
     FuelReadDto mapToReadDto(Integer id);
 }

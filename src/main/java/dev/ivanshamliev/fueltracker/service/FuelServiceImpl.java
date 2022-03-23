@@ -10,6 +10,7 @@ import dev.ivanshamliev.fueltracker.repository.GasStationRepository;
 import dev.ivanshamliev.fueltracker.repository.PriceHistoryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -77,7 +78,7 @@ public class FuelServiceImpl implements FuelService{
     }
 
     @Override @Transactional
-    public void updatePrice(Double newPrice, Integer fuelId) {
+    public void updatePrice(Integer fuelId, Double newPrice) {
         var fuelFromDb = fuelRepository.findById(fuelId)
                 .orElseThrow(() -> new InvalidParameterException("Fuel with the specified id does not exist."));
 
@@ -104,14 +105,14 @@ public class FuelServiceImpl implements FuelService{
         var fuelFromDb = this.fuelRepository.findById(id)
                 .orElseThrow(() -> new InvalidParameterException("Fuel with the specified id does not exist."));
         var gasStationFromDb = this.gasStationRepository.findById(fuelUpdateDto.getGasStationId())
-                .orElseThrow(() -> new InvalidParameterException("Gas station with the specified id does not exist."));
+                .orElseThrow(() -> new DataIntegrityViolationException("Gas station with the specified id does not exist."));
 
         if (fuelUpdateDto.getName().isEmpty() || fuelUpdateDto.getName().isBlank()) {
-            throw new InvalidParameterException("The fuel's name cannot be null or empty.");
+            throw new DataIntegrityViolationException("The fuel's name cannot be null or empty.");
         }
 
         if (!fuelFromDb.getPricePerLiter().equals(fuelUpdateDto.getPricePerLiter())) {
-            this.updatePrice(fuelUpdateDto.getPricePerLiter(), id);
+            this.updatePrice(id, fuelUpdateDto.getPricePerLiter());
         }
         fuelFromDb.setName(fuelUpdateDto.getName());
         fuelFromDb.setGasStation(gasStationFromDb);

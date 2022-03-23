@@ -1,5 +1,6 @@
 package dev.ivanshamliev.fueltracker.service;
 
+import dev.ivanshamliev.fueltracker.dto.GasStationCreateDto;
 import dev.ivanshamliev.fueltracker.dto.GasStationUpdateDto;
 import dev.ivanshamliev.fueltracker.model.Fuel;
 import dev.ivanshamliev.fueltracker.model.GasStation;
@@ -8,11 +9,13 @@ import dev.ivanshamliev.fueltracker.repository.FuelRepository;
 import dev.ivanshamliev.fueltracker.repository.GasStationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.security.InvalidParameterException;
 import java.util.List;
+import java.util.zip.DataFormatException;
 
 @Service @RequiredArgsConstructor @Slf4j
 public class GasStationServiceImpl implements GasStationService{
@@ -38,15 +41,28 @@ public class GasStationServiceImpl implements GasStationService{
     public GasStation getById(Integer id) {
         var gasStation = this.gasStationRepository.findById(id);
         if (gasStation.isEmpty()) {
-            throw new InvalidParameterException("City with the specified name does not exists");
+            throw new InvalidParameterException("Gas station with the specified id does not exists");
         }
 
         return gasStation.get();
     }
 
     @Override
-    public void addGasStation(GasStation gasStation) {
-        this.gasStationRepository.save(gasStation);
+    public void addGasStation(GasStationCreateDto gasStationCreateDto) {
+
+        var cityFromDb = this.cityRepository.findById(gasStationCreateDto.getCityId())
+                .orElseThrow( () -> new InvalidParameterException("The city doesn't exist."));
+
+        if (gasStationCreateDto.getName().isEmpty() && gasStationCreateDto.getName().isBlank()) {
+            throw new InvalidParameterException("The gas station's name cannot be null or empty.");
+        }
+        if (gasStationCreateDto.getStreetAddress().isEmpty() && gasStationCreateDto.getStreetAddress().isBlank()) {
+            throw new InvalidParameterException("The gas station's address cannot be null or empty.");
+        }
+
+        var newGasStation = new GasStation(gasStationCreateDto.getName(), gasStationCreateDto.getStreetAddress(), cityFromDb);
+
+        this.gasStationRepository.save(newGasStation);
         log.info("Record for a new gas station has been created.");
     }
 
@@ -62,17 +78,14 @@ public class GasStationServiceImpl implements GasStationService{
     }
 
     @Override @Transactional
-    public void updateGasStation(Integer id, GasStationUpdateDto gasStationUpdateDto) {
-        boolean doesGasStationExist = this.gasStationRepository.existsById(id);
-        var cityFromDb = this.cityRepository.findById(gasStationUpdateDto.getCityId());
-        if (cityFromDb.isEmpty()) {
-            throw new InvalidParameterException("The city doesn't exist.");
-        }
-        if (!doesGasStationExist) {
-            throw new InvalidParameterException("The gas station with the specified id was not found!");
-        }
+    public void updateGasStation(Integer id, GasStationUpdateDto gasStationUpdateDto) throws DataIntegrityViolationException {
 
-        var gasStationFromDb = this.gasStationRepository.getById(id);
+        var gasStationFromDb = this.gasStationRepository.findById(id)
+                .orElseThrow( () -> new InvalidParameterException("The gas station with the specified id was not found!"));
+
+        var cityFromDb = this.cityRepository.findById(gasStationUpdateDto.getCityId())
+                .orElseThrow( () -> new DataIntegrityViolationException("The city doesn't exist."));
+
 
         if (gasStationUpdateDto.getName() != null && !gasStationUpdateDto.getName().isEmpty() && !gasStationUpdateDto.getName().isBlank()) {
             gasStationFromDb.setName(gasStationUpdateDto.getName());
@@ -86,7 +99,7 @@ public class GasStationServiceImpl implements GasStationService{
             throw new InvalidParameterException("The gas station's address cannot be null or empty.");
         }
 
-        gasStationFromDb.setLocation(cityFromDb.get());
+        gasStationFromDb.setLocation(cityFromDb);
         log.info("Gas station with id {} has been updated.", id);
 
     }

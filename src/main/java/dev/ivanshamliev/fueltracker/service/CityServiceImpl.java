@@ -5,12 +5,12 @@ import dev.ivanshamliev.fueltracker.model.City;
 import dev.ivanshamliev.fueltracker.repository.CityRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.security.InvalidParameterException;
 import java.util.List;
-import java.util.zip.DataFormatException;
 
 @Service @Transactional @RequiredArgsConstructor @Slf4j
 public class CityServiceImpl implements CityService{
@@ -37,10 +37,10 @@ public class CityServiceImpl implements CityService{
     }
 
     @Override
-    public void addCity(City newCity) throws DataFormatException {
+    public void addCity(City newCity) throws DataIntegrityViolationException {
         if(newCity != null) {
             if(this.cityRepository.existsByName(newCity.getName())) {
-                throw new DataFormatException("City with that name already exists.");
+                throw new DataIntegrityViolationException("City with that name already exists.");
             }
 
             this.cityRepository.save(newCity);
@@ -61,19 +61,19 @@ public class CityServiceImpl implements CityService{
 
     @Override
     @Transactional
-    public void updateCity(Integer id, CityUpdateDto updatedCity) throws DataFormatException {
+    public void updateCity(Integer id, CityUpdateDto updatedCity) throws DataIntegrityViolationException {
         var cityFromDb = this.cityRepository.findById(id)
                 .orElseThrow(() -> new InvalidParameterException("The city with the specified id was not found!"));
 
         if (updatedCity.getName() != null && !updatedCity.getName().isEmpty() && !updatedCity.getName().isBlank()) {
             if(this.cityRepository.existsByName(updatedCity.getName()))
-                throw new DataFormatException("City with that name already exists.");
+                throw new DataIntegrityViolationException("City with that name already exists.");
             else{
                 cityFromDb.setName(updatedCity.getName());
                 log.info("City with id {} has been updated.", id);
             }
         }else {
-            throw new DataFormatException("Name cannot be empty.");
+            throw new DataIntegrityViolationException("Name cannot be empty.");
         }
     }
 }

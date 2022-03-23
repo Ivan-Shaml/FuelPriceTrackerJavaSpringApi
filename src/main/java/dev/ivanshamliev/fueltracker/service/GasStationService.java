@@ -7,12 +7,11 @@ import dev.ivanshamliev.fueltracker.model.GasStation;
 import org.springframework.dao.DataIntegrityViolationException;
 
 import java.util.List;
-import java.util.zip.DataFormatException;
 
 public interface GasStationService {
     List<GasStation> getAllByCity(String cityName);
     GasStation getById(Integer id);
-    void addGasStation(GasStationCreateDto gasStation);
+    Integer addGasStation(GasStationCreateDto gasStation);
     void deleteGasStation(Integer id);
     void updateGasStation(Integer id, GasStationUpdateDto gasStation) throws DataIntegrityViolationException;
     List<Fuel> getAvailableFuel(Integer stationId);

@@ -47,8 +47,8 @@ public class GasStationController {
     @PostMapping()
     public ResponseEntity<?> createStation(@RequestBody GasStationCreateDto gasStationCreateDto){
         try {
-            gasStationService.addGasStation(gasStationCreateDto);
-            URI uri = URI.create(ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/station/").toUriString());
+            Integer newRecordId = gasStationService.addGasStation(gasStationCreateDto);
+            URI uri = URI.create(ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/station/" + newRecordId).toUriString());
             return ResponseEntity.created(uri).build();
         } catch (InvalidParameterException ex) {
             log.error(ex.getMessage());

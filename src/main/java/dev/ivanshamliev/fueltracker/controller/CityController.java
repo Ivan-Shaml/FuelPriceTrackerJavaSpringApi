@@ -60,10 +60,11 @@ public class CityController {
         }
     }
 
-    public ResponseEntity<?> createCity(City city) {
+    @PostMapping()
+    public ResponseEntity<?> createCity(@RequestBody City city) {
         try {
-            cityService.addCity(city);
-            URI uri = URI.create(ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/city/").toUriString());
+            Integer newRecordId = cityService.addCity(city);
+            URI uri = URI.create(ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/city/" + newRecordId).toUriString());
             return ResponseEntity.created(uri).build();
         }catch (DataIntegrityViolationException ex) {
             log.error(ex.getMessage());

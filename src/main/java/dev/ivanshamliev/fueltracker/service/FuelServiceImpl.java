@@ -3,6 +3,7 @@ package dev.ivanshamliev.fueltracker.service;
 import dev.ivanshamliev.fueltracker.dto.FuelCreateDto;
 import dev.ivanshamliev.fueltracker.dto.FuelReadDto;
 import dev.ivanshamliev.fueltracker.dto.FuelUpdateDto;
+import dev.ivanshamliev.fueltracker.dto.PriceHistoryReadDto;
 import dev.ivanshamliev.fueltracker.model.Fuel;
 import dev.ivanshamliev.fueltracker.model.PriceHistory;
 import dev.ivanshamliev.fueltracker.repository.FuelRepository;
@@ -15,11 +16,13 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.security.InvalidParameterException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service @RequiredArgsConstructor @Slf4j
-public class FuelServiceImpl implements FuelService{
+public class FuelServiceImpl implements FuelService {
 
     private final GasStationRepository gasStationRepository;
     private final FuelRepository fuelRepository;
@@ -42,7 +45,7 @@ public class FuelServiceImpl implements FuelService{
     }
 
     @Override
-    public void addFuel(FuelCreateDto fuelCreateDto) {
+    public Integer addFuel(FuelCreateDto fuelCreateDto) {
 
         if (fuelCreateDto.getName().isEmpty() || fuelCreateDto.getName().isBlank()) {
             throw new InvalidParameterException("The fuel's name cannot be null or empty.");
@@ -56,13 +59,15 @@ public class FuelServiceImpl implements FuelService{
         }
 
         Fuel fuel = new Fuel(fuelCreateDto.getName(),
-                            fuelCreateDto.getPricePerLiter(),
-                            LocalDateTime.now(),
-                            gasStationFromDb.get()
+                fuelCreateDto.getPricePerLiter(),
+                LocalDateTime.now(),
+                gasStationFromDb.get()
         );
 
         this.fuelRepository.save(fuel);
         log.info("Record for a new fuel has been created.");
+
+        return fuel.getId();
     }
 
     @Override
@@ -77,14 +82,15 @@ public class FuelServiceImpl implements FuelService{
         log.warn("Fuel with id {} has been deleted.", id);
     }
 
-    @Override @Transactional
+    @Override
+    @Transactional
     public void updatePrice(Integer fuelId, Double newPrice) {
         var fuelFromDb = fuelRepository.findById(fuelId)
                 .orElseThrow(() -> new InvalidParameterException("Fuel with the specified id does not exist."));
 
         Double oldPrice = fuelFromDb.getPricePerLiter();
 
-        if (!oldPrice.equals(newPrice)){
+        if (!oldPrice.equals(newPrice)) {
             PriceHistory prHist = new PriceHistory(
                     LocalDateTime.now(),
                     oldPrice,
@@ -99,7 +105,8 @@ public class FuelServiceImpl implements FuelService{
         }
     }
 
-    @Override @Transactional
+    @Override
+    @Transactional
     public void updateFuel(Integer id, FuelUpdateDto fuelUpdateDto) {
 
         var fuelFromDb = this.fuelRepository.findById(id)
@@ -121,6 +128,15 @@ public class FuelServiceImpl implements FuelService{
         log.info("Fuel with id {} has been updated.", id);
     }
 
+    private PriceHistoryReadDto mapToPriceHistoryReadDto(PriceHistory prH) {
+        return new PriceHistoryReadDto(
+                prH.getId(),
+                prH.getTimeUpdated(),
+                prH.getOldPrice(),
+                prH.getNewPrice()
+        );
+    }
+
     @Override
     public FuelReadDto mapToReadDto(Integer id) {
         var fuelFromDb = this.fuelRepository.findById(id)
@@ -128,13 +144,20 @@ public class FuelServiceImpl implements FuelService{
 
         var history = this.priceRepository.getAllByFuelId(fuelFromDb.getId());
 
-        if (history.isEmpty()){
+        if (history.isPresent()) {
+            List<PriceHistoryReadDto> priceHistoryList = new ArrayList<>();
+
+            history.get().forEach(priceHistory -> {
+                priceHistoryList.add(this.mapToPriceHistoryReadDto(priceHistory));
+            });
+
             return new FuelReadDto(
                     fuelFromDb.getId(),
                     fuelFromDb.getName(),
                     fuelFromDb.getPricePerLiter(),
                     fuelFromDb.getLastUpdate(),
-                    null
+                    fuelFromDb.getGasStation(),
+                    priceHistoryList
             );
         }
 
@@ -143,7 +166,44 @@ public class FuelServiceImpl implements FuelService{
                 fuelFromDb.getName(),
                 fuelFromDb.getPricePerLiter(),
                 fuelFromDb.getLastUpdate(),
-                history.get()
+                fuelFromDb.getGasStation(),
+                null
+        );
+    }
+
+    @Override
+    public FuelReadDto getForDateToReadDto(Integer id, LocalDate date) {
+        var fuelFromDb = this.fuelRepository.findById(id)
+                .orElseThrow(() -> new InvalidParameterException("Fuel with the specified id does not exist."));
+
+        var history = this.priceRepository.getAllByFuelId(fuelFromDb.getId());
+
+        if (history.isPresent()) {
+            List<PriceHistoryReadDto> priceHistoryList = new ArrayList<>();
+
+            history.get()
+                    .stream().filter(price -> price.getTimeUpdated().toLocalDate().equals(date))
+                    .forEach(priceHistory -> {
+                        priceHistoryList.add(this.mapToPriceHistoryReadDto(priceHistory));
+                    });
+
+            return new FuelReadDto(
+                    fuelFromDb.getId(),
+                    fuelFromDb.getName(),
+                    fuelFromDb.getPricePerLiter(),
+                    fuelFromDb.getLastUpdate(),
+                    fuelFromDb.getGasStation(),
+                    priceHistoryList
+            );
+        }
+
+        return new FuelReadDto(
+                fuelFromDb.getId(),
+                fuelFromDb.getName(),
+                fuelFromDb.getPricePerLiter(),
+                fuelFromDb.getLastUpdate(),
+                fuelFromDb.getGasStation(),
+                new ArrayList<>()
         );
     }
 }

@@ -1,10 +1,9 @@
 package dev.ivanshamliev.fueltracker.dto;
 
-import dev.ivanshamliev.fueltracker.model.PriceHistory;
+import dev.ivanshamliev.fueltracker.model.GasStation;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import java.time.LocalDateTime;
 import java.util.Collection;
 
@@ -14,5 +13,6 @@ public class FuelReadDto {
     private String name;
     private Double pricePerLiter;
     private LocalDateTime lastUpdate;
-    private Collection<PriceHistory> priceHistory;
+    private GasStation gasStation;
+    private Collection<PriceHistoryReadDto> priceHistory;
 }

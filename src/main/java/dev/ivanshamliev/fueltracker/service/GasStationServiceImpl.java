@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.security.InvalidParameterException;
 import java.util.List;
-import java.util.zip.DataFormatException;
 
 @Service @RequiredArgsConstructor @Slf4j
 public class GasStationServiceImpl implements GasStationService{
@@ -48,7 +47,7 @@ public class GasStationServiceImpl implements GasStationService{
     }
 
     @Override
-    public void addGasStation(GasStationCreateDto gasStationCreateDto) {
+    public Integer addGasStation(GasStationCreateDto gasStationCreateDto) {
 
         var cityFromDb = this.cityRepository.findById(gasStationCreateDto.getCityId())
                 .orElseThrow( () -> new InvalidParameterException("The city doesn't exist."));
@@ -64,6 +63,7 @@ public class GasStationServiceImpl implements GasStationService{
 
         this.gasStationRepository.save(newGasStation);
         log.info("Record for a new gas station has been created.");
+        return newGasStation.getId();
     }
 
     @Override

@@ -37,15 +37,19 @@ public class CityServiceImpl implements CityService{
     }
 
     @Override
-    public void addCity(City newCity) throws DataIntegrityViolationException {
-        if(newCity != null) {
-            if(this.cityRepository.existsByName(newCity.getName())) {
-                throw new DataIntegrityViolationException("City with that name already exists.");
-            }
-
-            this.cityRepository.save(newCity);
-            log.info("Record for a new city has been created.");
+    public Integer addCity(City newCity) throws DataIntegrityViolationException {
+        if(newCity == null) {
+            throw new DataIntegrityViolationException("City cannot be null.");
         }
+
+        if(this.cityRepository.existsByName(newCity.getName())) {
+            throw new DataIntegrityViolationException("City with that name already exists.");
+        }
+
+        this.cityRepository.save(newCity);
+        log.info("Record for a new city has been created.");
+
+        return newCity.getId();
     }
 
     @Override

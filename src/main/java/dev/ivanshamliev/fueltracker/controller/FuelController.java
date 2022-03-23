@@ -14,6 +14,9 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
 import java.security.InvalidParameterException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 
 @RestController @Slf4j @RequestMapping("/api/fuel/") @RequiredArgsConstructor
 public class FuelController {
@@ -46,11 +49,31 @@ public class FuelController {
         }
     }
 
+    @GetMapping("{id}/price/{date}")
+    public ResponseEntity<FuelReadDto> getPriceById(@PathVariable("id") Integer id, @PathVariable("date") String date) {
+        try {
+
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            LocalDate targetDate = LocalDate.parse(date.toLowerCase(), formatter);
+
+            var fuel = fuelService.getForDateToReadDto(id, targetDate);
+            return ResponseEntity.ok().body(fuel);
+        } catch (InvalidParameterException ex) {
+            log.error(ex.getMessage());
+            return ResponseEntity.notFound().build();
+        }
+        catch (DateTimeParseException ex) {
+            log.error(ex.getMessage());
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+
     @PostMapping()
     public ResponseEntity<?> create(@RequestBody FuelCreateDto fuelCreateDto) {
         try {
-            fuelService.addFuel(fuelCreateDto);
-            URI uri = URI.create(ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/fuel/").toUriString());
+            Integer newRecordId = fuelService.addFuel(fuelCreateDto);
+            URI uri = URI.create(ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/fuel/" + newRecordId).toUriString());
 
             return ResponseEntity.created(uri).build();
         } catch (InvalidParameterException ex) {
@@ -83,8 +106,8 @@ public class FuelController {
             return ResponseEntity.badRequest().body(ex.getMessage());
         }
     }
-    @PutMapping("{id}/price/{value}")
-    public ResponseEntity<?> updateFuel(@PathVariable Integer id, @PathVariable("value") Double newPrice) {
+    @PutMapping("{id}/price/{newValue}")
+    public ResponseEntity<?> updateFuel(@PathVariable Integer id, @PathVariable("newValue") Double newPrice) {
         try {
             fuelService.updatePrice(id, newPrice);
             return ResponseEntity.noContent().build();

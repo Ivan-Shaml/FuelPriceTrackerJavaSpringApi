@@ -5,14 +5,20 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Collection;
 
 @Entity @Data @Table @NoArgsConstructor @AllArgsConstructor
 public class Fuel {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @SequenceGenerator(
+            name = "fuel_sequence",
+            sequenceName = "fuel_sequence",
+            allocationSize = 1
+    )
+    @GeneratedValue(
+            strategy = GenerationType.SEQUENCE,
+            generator = "fuel_sequence"
+    )
     private Integer id;
     private String name;
     private Double pricePerLiter;

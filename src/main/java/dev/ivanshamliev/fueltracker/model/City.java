@@ -7,16 +7,7 @@ import javax.persistence.*;
 
 @Entity @Data @Table @NoArgsConstructor @AllArgsConstructor
 public class City {
-    @Id
-    @SequenceGenerator(
-            name = "city_sequence",
-            sequenceName = "city_sequence",
-            allocationSize = 1
-    )
-    @GeneratedValue(
-            strategy = GenerationType.SEQUENCE,
-            generator = "city_sequence"
-    )
+    @Id @GeneratedValue(strategy=GenerationType.IDENTITY)
     private Integer id;
     private String name;
 

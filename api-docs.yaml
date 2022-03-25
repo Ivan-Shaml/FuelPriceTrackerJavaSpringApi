@@ -1,0 +1,538 @@
+openapi: 3.0.1
+info:
+  title: Fuel Price API
+  description: "This is an API, which gives to its users the functionality to track prices of different fuels, in gas station and cities across the country."
+  version: v1
+servers:
+  - url: http://localhost:8080
+    description: Local Tomcat instance
+paths:
+  /api/station/{id}:
+    get:
+      tags:
+        - Gas Station
+      summary: Get gas station by id
+      operationId: getById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/GasStation'
+        '404':
+          description: Gas station not found. Invalid id supplied.
+    put:
+      tags:
+        - Gas Station
+      summary: Update gas station entity
+      operationId: updateGasStation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GasStationUpdateDto'
+        required: true
+      responses:
+        '204':
+          description: Entity was successfully updated.
+        '404':
+          description: Gas station not found. Invalid id supplied.
+        '400':
+          description: Bad data supplied. Check request body.
+    delete:
+      tags:
+        - Gas Station
+      summary: Delete gas station
+      operationId: removeStation
+      parameters:
+        - name: id
+          in: path
+          description: Id of gas station to delete
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '204':
+          description: Entity was successfully deleted
+        '404':
+          description: Gas station not found. Invalid id supplied.
+        
+  /api/fuel/{id}:
+    get:
+      tags:
+        - Fuel
+      summary: Get fuel by id
+      operationId: getById_1
+      parameters:
+        - name: id
+          description: Id of fuel to return
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/Fuel'
+        '404':
+          description: Fuel not found. Invalid Id supplied.
+    put:
+      tags:
+        - Fuel
+      summary: Update fuel entity
+      operationId: updateFuel
+      parameters:
+        - name: id
+          in: path
+          description: id of fuel to update
+          required: true
+          schema:
+            type: integer
+            format: int32
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FuelUpdateDto'
+        required: true
+      responses:
+        '204':
+          description: Entity updated successfully.
+        '400':
+          description: Bad data supplied. Check request body.
+        '404':
+          description: Fuel not found. Invalid id supplied.
+    delete:
+      tags:
+        - Fuel
+      summary: Delete fuel
+      operationId: delete
+      parameters:
+        - name: id
+          in: path
+          description: id of fuel to delete
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '204':
+          description: Entity successfully deleted.
+        '404':
+          description: Fuel not found. Invalid id supplied.
+  /api/fuel/{id}/price/{newValue}:
+    put:
+      tags:
+        - Fuel
+      summary: Set new price for a fuel
+      operationId: updateFuel_1
+      parameters:
+        - name: id
+          in: path
+          description: Id of fuel to update 
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: newValue
+          in: path
+          description: New price for fuel
+          required: true
+          schema:
+            type: number
+            format: double
+      responses:
+        '204':
+          description: Price changed sucessfully.
+        '404':
+          description: Fuel not found. Invalid id supplied.
+  /api/city/{id}:
+    get:
+      tags:
+        - City
+      summary: Get city by id
+      operationId: getById_2
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/City'
+        '404':
+          description: City not found. Invalid id supplied.
+    put:
+      tags:
+        - City
+      summary: Update city entity
+      operationId: updateCity
+      parameters:
+        - name: id
+          in: path
+          description: Id of the city entity to update
+          required: true
+          schema:
+            type: integer
+            format: int32
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CityUpdateDto'
+        required: true
+      responses:
+        '204':
+          description: Entity successfully updated
+        '400':
+          description: Invalid data supplied. Check request body.
+        '404':
+          description: City not found. Invalid id supplied.
+        '409':
+          description: City with the supplied nave already exists. City names must be unique.
+    delete:
+      tags:
+        - City
+      operationId: deleteCity
+      summary: Delete city
+      parameters:
+        - name: id
+          in: path
+          description: Id of the city entity to delete.
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '204':
+          description: Entity deleted successfully.
+        '404':
+          description: City not found. Invalid Id supplied.
+  /api/station/:
+    post:
+      tags:
+        - Gas Station
+      summary: Add new gas station
+      operationId: createStation
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GasStationCreateDto'
+        required: true
+      responses:
+        '201':
+          description: Created sucessfully
+        '400': 
+          description: Invalid data provided. Check request body.
+  /api/fuel/:
+    get:
+      tags:
+        - Fuel
+      summary: Get list of all fuels in the database
+      operationId: getAll
+      responses:
+        '200':
+          description: OK
+          content:
+            'application/json':
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Fuel'
+    post:
+      tags:
+        - Fuel
+      operationId: create
+      summary: Add new fuel
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FuelCreateDto'
+        required: true
+      responses:
+        '201':
+          description: Entity created successfully.
+        '400':
+          description: Invalid data supplied. Check request body.
+  /api/city/:
+    get:
+      tags:
+        - City
+      summary: Get a list of all cities in the database
+      operationId: getAll_1
+      responses:
+        '200':
+          description: OK
+          content:
+            'application/json':
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/City'
+    post:
+      tags:
+        - City
+      summary: Add a new city
+      operationId: createCity
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CityUpdateDto'
+        required: true
+      responses:
+        '201':
+          description: Entity created successfully.
+        '400':
+          description: Bad data provied. Check request body.
+        '409':
+          description: City with that name already exists. City name must be unique.
+          
+  /api/station/{id}/fuel:
+    get:
+      tags:
+        - Gas Station
+      summary: Get list of available fuels in the gas station
+      operationId: getAvailableFuel
+      parameters:
+        - name: id
+          in: path
+          description: Id of gas
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            'application/json':
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Fuel'
+        '404':
+          description: Gas station not found. Invalid id supplied.
+  /api/station/city/{cityName}:
+    get:
+      tags:
+        - Gas Station
+      summary: Get a list of Gas Station in a particular city
+      operationId: getByCity
+      parameters:
+        - name: cityName
+          in: path
+          description: The name of the city to get a list of gas stations for
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            'application/json':
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GasStation'
+        '404':
+          description: City not found.
+  /api/fuel/{id}/price:
+    get:
+      tags:
+        - Fuel
+      summary: Get price history for a fuel
+      operationId: getPriceById
+      parameters:
+        - name: id
+          in: path
+          description: Id of fuel to get the price history for.
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/FuelReadDto'
+        '404':
+          description: Fuel not found. Invalid Id supplied.
+  /api/fuel/{id}/price/{date}:
+    get:
+      tags:
+        - Fuel
+      summary: Get the price history of a fuel for a particular date
+      operationId: getPriceById_1
+      parameters:
+        - name: id
+          in: path
+          description: Id of fuel to get data for.
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: date
+          in: path
+          description: Date to filter by. Date must be in the following format 'yyyy-MM-dd' or for example 2022-02-18
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/FuelReadDto'
+        '404':
+          description: Fuel not found. Invalid Id supplied.
+        '400':
+          description: Invalid date supplied. Make sure the date is it the following format 'yyyy-MM-dd'.
+components:
+  schemas:
+    GasStationUpdateDto:
+      type: object
+      properties:
+        name:
+          type: string
+        streetAddress:
+          type: string
+        cityId:
+          type: integer
+          format: int32
+    FuelUpdateDto:
+      type: object
+      properties:
+        name:
+          type: string
+        pricePerLiter:
+          type: number
+          format: double
+        gasStationId:
+          type: integer
+          format: int32
+    CityUpdateDto:
+      type: object
+      properties:
+        name:
+          type: string
+    GasStationCreateDto:
+      type: object
+      properties:
+        name:
+          type: string
+        streetAddress:
+          type: string
+        cityId:
+          type: integer
+          format: int32
+    FuelCreateDto:
+      type: object
+      properties:
+        name:
+          type: string
+        pricePerLiter:
+          type: number
+          format: double
+        gasStationId:
+          type: integer
+          format: int32
+    City:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        name:
+          type: string
+    GasStation:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        name:
+          type: string
+        streetAddress:
+          type: string
+        location:
+          $ref: '#/components/schemas/City'
+    Fuel:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        name:
+          type: string
+        pricePerLiter:
+          type: number
+          format: double
+        lastUpdate:
+          type: string
+          format: date-time
+        gasStation:
+          $ref: '#/components/schemas/GasStation'
+    FuelReadDto:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        name:
+          type: string
+        pricePerLiter:
+          type: number
+          format: double
+        lastUpdate:
+          type: string
+          format: date-time
+        gasStation:
+          $ref: '#/components/schemas/GasStation'
+        priceHistory:
+          type: array
+          items:
+            $ref: '#/components/schemas/PriceHistoryReadDto'
+    PriceHistoryReadDto:
+      type: object
+      properties:
+        timeUpdated:
+          type: string
+          format: date-time
+        oldPrice:
+          type: number
+          format: double
+        newPrice:
+          type: number
+          format: double

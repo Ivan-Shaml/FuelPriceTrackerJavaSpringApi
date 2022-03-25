@@ -6,6 +6,7 @@ import dev.ivanshamliev.fueltracker.service.CityService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -14,7 +15,7 @@ import java.net.URI;
 import java.security.InvalidParameterException;
 import java.util.List;
 
-@RestController @Slf4j @RequestMapping("/api/city/") @RequiredArgsConstructor
+@RestController @RequestMapping("/api/city/") @Slf4j @RequiredArgsConstructor
 public class CityController {
     private final CityService cityService;
 
@@ -25,7 +26,7 @@ public class CityController {
     }
 
     @GetMapping("{id}")
-    public ResponseEntity<City> getById(@PathVariable Integer id){
+    public ResponseEntity<City> getById(@PathVariable Integer id) {
         try {
             var city = cityService.getById(id);
             return ResponseEntity.ok().body(city);
@@ -54,6 +55,9 @@ public class CityController {
         } catch (InvalidParameterException ex) {
             log.error(ex.getMessage());
             return ResponseEntity.notFound().build();
+        } catch (DuplicateKeyException dupex) {
+            log.error(dupex.getMessage());
+            return ResponseEntity.status(409).build();
         } catch (DataIntegrityViolationException ex) {
             log.error(ex.getMessage());
             return ResponseEntity.badRequest().body(ex.getMessage());
@@ -66,10 +70,12 @@ public class CityController {
             Integer newRecordId = cityService.addCity(city);
             URI uri = URI.create(ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/city/" + newRecordId).toUriString());
             return ResponseEntity.created(uri).build();
-        }catch (DataIntegrityViolationException ex) {
+        } catch (DuplicateKeyException dupex) {
+            log.error(dupex.getMessage());
+            return ResponseEntity.status(409).build();
+        } catch (DataIntegrityViolationException ex) {
             log.error(ex.getMessage());
             return ResponseEntity.badRequest().body(ex.getMessage());
         }
     }
-
 }

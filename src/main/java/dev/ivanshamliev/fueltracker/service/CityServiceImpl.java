@@ -6,6 +6,7 @@ import dev.ivanshamliev.fueltracker.repository.CityRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -43,7 +44,7 @@ public class CityServiceImpl implements CityService{
         }
 
         if(this.cityRepository.existsByName(newCity.getName())) {
-            throw new DataIntegrityViolationException("City with that name already exists.");
+            throw new DuplicateKeyException("City with that name already exists.");
         }
 
         this.cityRepository.save(newCity);
@@ -71,7 +72,7 @@ public class CityServiceImpl implements CityService{
 
         if (updatedCity.getName() != null && !updatedCity.getName().isEmpty() && !updatedCity.getName().isBlank()) {
             if(this.cityRepository.existsByName(updatedCity.getName()))
-                throw new DataIntegrityViolationException("City with that name already exists.");
+                throw new DuplicateKeyException("City with that name already exists.");
             else{
                 cityFromDb.setName(updatedCity.getName());
                 log.info("City with id {} has been updated.", id);

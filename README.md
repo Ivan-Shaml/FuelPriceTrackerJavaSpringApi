@@ -10,3 +10,6 @@ The application gives to the user the ability to add new cities, gas stations re
  - Lombok (used for quicker code scaffolding)
  - MySQL Database backend
  - springdoc-openapi-ui (for Swagger documentation)
+
+## Swagger API Documentation
+- https://petstore.swagger.io/?url=https://raw.githubusercontent.com/Ivan-Shaml/FuelPriceTrackerJavaSpringApi/master/api-docs.yaml

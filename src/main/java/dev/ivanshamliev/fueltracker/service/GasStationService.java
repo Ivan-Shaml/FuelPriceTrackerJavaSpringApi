@@ -10,9 +10,14 @@ import java.util.List;
 
 public interface GasStationService {
     List<GasStation> getAllByCity(String cityName);
+
     GasStation getById(Integer id);
+
     Integer addGasStation(GasStationCreateDto gasStation);
+
     void deleteGasStation(Integer id);
-    void updateGasStation(Integer id, GasStationUpdateDto gasStation) throws DataIntegrityViolationException;
+
+    void updateGasStation(Integer id, GasStationUpdateDto gasStation);
+
     List<Fuel> getAvailableFuel(Integer stationId);
 }

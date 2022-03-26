@@ -4,6 +4,8 @@ import dev.ivanshamliev.fueltracker.dto.FuelCreateDto;
 import dev.ivanshamliev.fueltracker.dto.FuelReadDto;
 import dev.ivanshamliev.fueltracker.dto.FuelUpdateDto;
 import dev.ivanshamliev.fueltracker.dto.PriceHistoryReadDto;
+import dev.ivanshamliev.fueltracker.exception.EntityNotFoundException;
+import dev.ivanshamliev.fueltracker.exception.InvalidDataProvidedException;
 import dev.ivanshamliev.fueltracker.model.Fuel;
 import dev.ivanshamliev.fueltracker.model.PriceHistory;
 import dev.ivanshamliev.fueltracker.repository.FuelRepository;
@@ -11,17 +13,18 @@ import dev.ivanshamliev.fueltracker.repository.GasStationRepository;
 import dev.ivanshamliev.fueltracker.repository.PriceHistoryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.security.InvalidParameterException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
-@Service @RequiredArgsConstructor @Slf4j
+@Service
+@RequiredArgsConstructor
+@Slf4j
 public class FuelServiceImpl implements FuelService {
 
     private final GasStationRepository gasStationRepository;
@@ -38,7 +41,7 @@ public class FuelServiceImpl implements FuelService {
     public Fuel getById(Integer id) {
         var fuel = fuelRepository.findById(id);
         if (fuel.isEmpty()) {
-            throw new InvalidParameterException("Fuel with the specified id does not exist.");
+            throw new EntityNotFoundException("Fuel with the specified id does not exist.");
         }
 
         return fuel.get();
@@ -48,14 +51,14 @@ public class FuelServiceImpl implements FuelService {
     public Integer addFuel(FuelCreateDto fuelCreateDto) {
 
         if (fuelCreateDto.getName().isEmpty() || fuelCreateDto.getName().isBlank()) {
-            throw new InvalidParameterException("The fuel's name cannot be null or empty.");
+            throw new InvalidDataProvidedException("The fuel's name cannot be null or empty.");
         }
         if (fuelCreateDto.getPricePerLiter() <= 0) {
-            throw new InvalidParameterException("The fuel's price cannot be negative or zero.");
+            throw new InvalidDataProvidedException("The fuel's price cannot be negative or zero.");
         }
         var gasStationFromDb = this.gasStationRepository.findById(fuelCreateDto.getGasStationId());
         if (gasStationFromDb.isEmpty()) {
-            throw new InvalidParameterException("The specified gas station doesn't exist.");
+            throw new InvalidDataProvidedException("The specified gas station doesn't exist.");
         }
 
         Fuel fuel = new Fuel(fuelCreateDto.getName(),
@@ -75,7 +78,7 @@ public class FuelServiceImpl implements FuelService {
         boolean fuelExists = this.fuelRepository.existsById(id);
 
         if (!fuelExists) {
-            throw new InvalidParameterException("The fuel with the specified id was not found!");
+            throw new EntityNotFoundException("The fuel with the specified id was not found!");
         }
 
         this.fuelRepository.deleteById(id);
@@ -86,7 +89,7 @@ public class FuelServiceImpl implements FuelService {
     @Transactional
     public void updatePrice(Integer fuelId, Double newPrice) {
         var fuelFromDb = fuelRepository.findById(fuelId)
-                .orElseThrow(() -> new InvalidParameterException("Fuel with the specified id does not exist."));
+                .orElseThrow(() -> new EntityNotFoundException("Fuel with the specified id does not exist."));
 
         Double oldPrice = fuelFromDb.getPricePerLiter();
 
@@ -110,12 +113,12 @@ public class FuelServiceImpl implements FuelService {
     public void updateFuel(Integer id, FuelUpdateDto fuelUpdateDto) {
 
         var fuelFromDb = this.fuelRepository.findById(id)
-                .orElseThrow(() -> new InvalidParameterException("Fuel with the specified id does not exist."));
+                .orElseThrow(() -> new EntityNotFoundException("Fuel with the specified id does not exist."));
         var gasStationFromDb = this.gasStationRepository.findById(fuelUpdateDto.getGasStationId())
-                .orElseThrow(() -> new DataIntegrityViolationException("Gas station with the specified id does not exist."));
+                .orElseThrow(() -> new InvalidDataProvidedException("Gas station with the specified id does not exist."));
 
         if (fuelUpdateDto.getName().isEmpty() || fuelUpdateDto.getName().isBlank()) {
-            throw new DataIntegrityViolationException("The fuel's name cannot be null or empty.");
+            throw new InvalidDataProvidedException("The fuel's name cannot be null or empty.");
         }
 
         if (!fuelFromDb.getPricePerLiter().equals(fuelUpdateDto.getPricePerLiter())) {
@@ -140,7 +143,7 @@ public class FuelServiceImpl implements FuelService {
     @Override
     public FuelReadDto mapToReadDto(Integer id) {
         var fuelFromDb = this.fuelRepository.findById(id)
-                .orElseThrow(() -> new InvalidParameterException("Fuel with the specified id does not exist."));
+                .orElseThrow(() -> new EntityNotFoundException("Fuel with the specified id does not exist."));
 
         var history = this.priceRepository.getAllByFuelId(fuelFromDb.getId());
 
@@ -172,9 +175,13 @@ public class FuelServiceImpl implements FuelService {
     }
 
     @Override
-    public FuelReadDto getForDateToReadDto(Integer id, LocalDate date) {
+    public FuelReadDto getForDateToReadDto(Integer id, String date) {
         var fuelFromDb = this.fuelRepository.findById(id)
-                .orElseThrow(() -> new InvalidParameterException("Fuel with the specified id does not exist."));
+                .orElseThrow(() -> new EntityNotFoundException("Fuel with the specified id does not exist."));
+
+        // check if provided the date is in the correct format, it doesn't match, an exception will be thrown
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        LocalDate targetDate = LocalDate.parse(date.toLowerCase(), formatter);
 
         var history = this.priceRepository.getAllByFuelId(fuelFromDb.getId());
 
@@ -182,7 +189,7 @@ public class FuelServiceImpl implements FuelService {
             List<PriceHistoryReadDto> priceHistoryList = new ArrayList<>();
 
             history.get()
-                    .stream().filter(price -> price.getTimeUpdated().toLocalDate().equals(date))
+                    .stream().filter(price -> price.getTimeUpdated().toLocalDate().equals(targetDate))
                     .forEach(priceHistory -> {
                         priceHistoryList.add(this.mapToPriceHistoryReadDto(priceHistory));
                     });

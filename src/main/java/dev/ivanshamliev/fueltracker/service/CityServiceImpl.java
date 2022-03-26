@@ -1,6 +1,9 @@
 package dev.ivanshamliev.fueltracker.service;
 
 import dev.ivanshamliev.fueltracker.dto.CityUpdateDto;
+import dev.ivanshamliev.fueltracker.exception.DuplicateEntityException;
+import dev.ivanshamliev.fueltracker.exception.EntityNotFoundException;
+import dev.ivanshamliev.fueltracker.exception.InvalidDataProvidedException;
 import dev.ivanshamliev.fueltracker.model.City;
 import dev.ivanshamliev.fueltracker.repository.CityRepository;
 import lombok.RequiredArgsConstructor;
@@ -13,8 +16,11 @@ import javax.transaction.Transactional;
 import java.security.InvalidParameterException;
 import java.util.List;
 
-@Service @Transactional @RequiredArgsConstructor @Slf4j
-public class CityServiceImpl implements CityService{
+@Service
+@Transactional
+@RequiredArgsConstructor
+@Slf4j
+public class CityServiceImpl implements CityService {
 
     private final CityRepository cityRepository;
 
@@ -25,26 +31,31 @@ public class CityServiceImpl implements CityService{
 
     @Override
     public City getByName(String name) {
-        return this.cityRepository.getByName(name);
+        var city = this.cityRepository.getByName(name);
+        if (city == null) {
+            throw new EntityNotFoundException("The city with the specified name was not found!");
+        }
+
+        return city;
     }
 
     @Override
-    public City getById(Integer id) throws InvalidParameterException {
+    public City getById(Integer id) {
         var cityFromDb = this.cityRepository.findById(id);
         if (cityFromDb.isEmpty()) {
-            throw new InvalidParameterException("The city with the specified id was not found!");
+            throw new EntityNotFoundException("The city with the specified id was not found!");
         }
         return cityFromDb.get();
     }
 
     @Override
-    public Integer addCity(City newCity) throws DataIntegrityViolationException {
-        if(newCity == null) {
-            throw new DataIntegrityViolationException("City cannot be null.");
+    public Integer addCity(City newCity) {
+        if (newCity == null) {
+            throw new InvalidDataProvidedException("City cannot be null.");
         }
 
-        if(this.cityRepository.existsByName(newCity.getName())) {
-            throw new DuplicateKeyException("City with that name already exists.");
+        if (this.cityRepository.existsByName(newCity.getName())) {
+            throw new DuplicateEntityException("City with that name already exists.");
         }
 
         this.cityRepository.save(newCity);
@@ -54,10 +65,10 @@ public class CityServiceImpl implements CityService{
     }
 
     @Override
-    public void deleteCity(Integer id) throws InvalidParameterException {
+    public void deleteCity(Integer id) {
         boolean cityExists = this.cityRepository.existsById(id);
         if (!cityExists) {
-            throw new InvalidParameterException("The city with the specified id was not found!");
+            throw new EntityNotFoundException("The city with the specified id was not found!");
         }
 
         this.cityRepository.deleteById(id);
@@ -66,19 +77,19 @@ public class CityServiceImpl implements CityService{
 
     @Override
     @Transactional
-    public void updateCity(Integer id, CityUpdateDto updatedCity) throws DataIntegrityViolationException {
+    public void updateCity(Integer id, CityUpdateDto updatedCity) {
         var cityFromDb = this.cityRepository.findById(id)
-                .orElseThrow(() -> new InvalidParameterException("The city with the specified id was not found!"));
+                .orElseThrow(() -> new EntityNotFoundException("The city with the specified id was not found!"));
 
         if (updatedCity.getName() != null && !updatedCity.getName().isEmpty() && !updatedCity.getName().isBlank()) {
-            if(this.cityRepository.existsByName(updatedCity.getName()))
-                throw new DuplicateKeyException("City with that name already exists.");
-            else{
+            if (this.cityRepository.existsByName(updatedCity.getName()))
+                throw new DuplicateEntityException("City with that name already exists.");
+            else {
                 cityFromDb.setName(updatedCity.getName());
                 log.info("City with id {} has been updated.", id);
             }
-        }else {
-            throw new DataIntegrityViolationException("Name cannot be empty.");
+        } else {
+            throw new InvalidDataProvidedException("Name cannot be empty.");
         }
     }
 }

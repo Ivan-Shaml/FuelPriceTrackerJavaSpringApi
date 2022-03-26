@@ -6,19 +6,15 @@ import dev.ivanshamliev.fueltracker.dto.FuelUpdateDto;
 import dev.ivanshamliev.fueltracker.model.Fuel;
 import dev.ivanshamliev.fueltracker.service.FuelService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
-import java.security.InvalidParameterException;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 
-@RestController @Slf4j @RequestMapping("/api/fuel/") @RequiredArgsConstructor
+@RestController
+@RequestMapping("/api/fuel/")
+@RequiredArgsConstructor
 public class FuelController {
     private final FuelService fuelService;
 
@@ -29,91 +25,46 @@ public class FuelController {
 
     @GetMapping("{id}")
     public ResponseEntity<Fuel> getById(@PathVariable Integer id) {
-        try {
-            var fuel = fuelService.getById(id);
-            return ResponseEntity.ok().body(fuel);
-        } catch (InvalidParameterException ex) {
-            log.error(ex.getMessage());
-            return ResponseEntity.notFound().build();
-        }
+        var fuel = fuelService.getById(id);
+        return ResponseEntity.ok().body(fuel);
     }
 
     @GetMapping("{id}/price")
     public ResponseEntity<FuelReadDto> getPriceById(@PathVariable Integer id) {
-        try {
-            var fuel = fuelService.mapToReadDto(id);
-            return ResponseEntity.ok().body(fuel);
-        } catch (InvalidParameterException ex) {
-            log.error(ex.getMessage());
-            return ResponseEntity.notFound().build();
-        }
+        var fuel = fuelService.mapToReadDto(id);
+        return ResponseEntity.ok().body(fuel);
     }
 
     @GetMapping("{id}/price/{date}")
     public ResponseEntity<FuelReadDto> getPriceById(@PathVariable("id") Integer id, @PathVariable("date") String date) {
-        try {
-
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-            LocalDate targetDate = LocalDate.parse(date.toLowerCase(), formatter);
-
-            var fuel = fuelService.getForDateToReadDto(id, targetDate);
-            return ResponseEntity.ok().body(fuel);
-        } catch (InvalidParameterException ex) {
-            log.error(ex.getMessage());
-            return ResponseEntity.notFound().build();
-        }
-        catch (DateTimeParseException ex) {
-            log.error(ex.getMessage());
-            return ResponseEntity.badRequest().build();
-        }
+        var fuel = fuelService.getForDateToReadDto(id, date);
+        return ResponseEntity.ok().body(fuel);
     }
 
 
     @PostMapping()
     public ResponseEntity<?> create(@RequestBody FuelCreateDto fuelCreateDto) {
-        try {
-            Integer newRecordId = fuelService.addFuel(fuelCreateDto);
-            URI uri = URI.create(ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/fuel/" + newRecordId).toUriString());
+        Integer newRecordId = fuelService.addFuel(fuelCreateDto);
+        URI uri = URI.create(ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/fuel/" + newRecordId).toUriString());
 
-            return ResponseEntity.created(uri).build();
-        } catch (InvalidParameterException ex) {
-            log.error(ex.getMessage());
-            return ResponseEntity.badRequest().body(ex.getMessage());
-        }
+        return ResponseEntity.created(uri).build();
     }
 
     @DeleteMapping("{id}")
     public ResponseEntity<?> delete(@PathVariable Integer id) {
-        try {
-            fuelService.deleteFuel(id);
-            return ResponseEntity.noContent().build();
-        } catch (InvalidParameterException ex) {
-            log.error(ex.getMessage());
-            return ResponseEntity.notFound().build();
-        }
+        fuelService.deleteFuel(id);
+        return ResponseEntity.noContent().build();
     }
 
     @PutMapping("{id}")
     public ResponseEntity<?> updateFuel(@PathVariable Integer id, @RequestBody FuelUpdateDto fuelUpdateDto) {
-        try {
-            fuelService.updateFuel(id, fuelUpdateDto);
-            return ResponseEntity.noContent().build();
-        } catch (InvalidParameterException ex) {
-            log.error(ex.getMessage());
-            return ResponseEntity.notFound().build();
-        } catch (DataIntegrityViolationException ex) {
-            log.error(ex.getMessage());
-            return ResponseEntity.badRequest().body(ex.getMessage());
-        }
+        fuelService.updateFuel(id, fuelUpdateDto);
+        return ResponseEntity.noContent().build();
     }
+
     @PutMapping("{id}/price/{newValue}")
     public ResponseEntity<?> updateFuel(@PathVariable Integer id, @PathVariable("newValue") Double newPrice) {
-        try {
-            fuelService.updatePrice(id, newPrice);
-            return ResponseEntity.noContent().build();
-        } catch (InvalidParameterException ex) {
-            log.error(ex.getMessage());
-            return ResponseEntity.notFound().build();
-        }
+        fuelService.updatePrice(id, newPrice);
+        return ResponseEntity.noContent().build();
     }
 }

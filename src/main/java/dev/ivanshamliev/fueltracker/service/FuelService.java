@@ -10,11 +10,18 @@ import java.util.List;
 
 public interface FuelService {
     List<Fuel> getAll();
+
     Fuel getById(Integer id);
+
     Integer addFuel(FuelCreateDto fuelCreateDto);
+
     void deleteFuel(Integer id);
+
     void updatePrice(Integer fuelId, Double newPrice);
+
     void updateFuel(Integer id, FuelUpdateDto fuelUpdateDto);
+
     FuelReadDto mapToReadDto(Integer id);
-    FuelReadDto getForDateToReadDto(Integer id, LocalDate date);
+
+    FuelReadDto getForDateToReadDto(Integer id, String date);
 }

@@ -29,6 +29,10 @@ paths:
                 $ref: '#/components/schemas/GasStation'
         '404':
           description: Gas station not found. Invalid id supplied.
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/StandardErrorMessage'
     put:
       tags:
         - Gas Station
@@ -52,8 +56,16 @@ paths:
           description: Entity was successfully updated.
         '404':
           description: Gas station not found. Invalid id supplied.
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/StandardErrorMessage'
         '400':
           description: Bad data supplied. Check request body.
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/StandardErrorMessage'
     delete:
       tags:
         - Gas Station
@@ -72,6 +84,10 @@ paths:
           description: Entity was successfully deleted
         '404':
           description: Gas station not found. Invalid id supplied.
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/StandardErrorMessage'
         
   /api/fuel/{id}:
     get:
@@ -96,6 +112,10 @@ paths:
                 $ref: '#/components/schemas/Fuel'
         '404':
           description: Fuel not found. Invalid Id supplied.
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/StandardErrorMessage'
     put:
       tags:
         - Fuel
@@ -120,8 +140,16 @@ paths:
           description: Entity updated successfully.
         '400':
           description: Bad data supplied. Check request body.
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/StandardErrorMessage'
         '404':
           description: Fuel not found. Invalid id supplied.
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/StandardErrorMessage'
     delete:
       tags:
         - Fuel
@@ -140,6 +168,10 @@ paths:
           description: Entity successfully deleted.
         '404':
           description: Fuel not found. Invalid id supplied.
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/StandardErrorMessage'
   /api/fuel/{id}/price/{newValue}:
     put:
       tags:
@@ -166,6 +198,10 @@ paths:
           description: Price changed sucessfully.
         '404':
           description: Fuel not found. Invalid id supplied.
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/StandardErrorMessage'
   /api/city/{id}:
     get:
       tags:
@@ -188,6 +224,10 @@ paths:
                 $ref: '#/components/schemas/City'
         '404':
           description: City not found. Invalid id supplied.
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/StandardErrorMessage'
     put:
       tags:
         - City
@@ -212,10 +252,22 @@ paths:
           description: Entity successfully updated
         '400':
           description: Invalid data supplied. Check request body.
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/StandardErrorMessage'
         '404':
           description: City not found. Invalid id supplied.
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/StandardErrorMessage'
         '409':
           description: City with the supplied nave already exists. City names must be unique.
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/StandardErrorMessage'
     delete:
       tags:
         - City
@@ -234,6 +286,10 @@ paths:
           description: Entity deleted successfully.
         '404':
           description: City not found. Invalid Id supplied.
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/StandardErrorMessage'
   /api/station/:
     post:
       tags:
@@ -251,6 +307,10 @@ paths:
           description: Created sucessfully
         '400': 
           description: Invalid data provided. Check request body.
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/StandardErrorMessage'
   /api/fuel/:
     get:
       tags:
@@ -282,6 +342,10 @@ paths:
           description: Entity created successfully.
         '400':
           description: Invalid data supplied. Check request body.
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/StandardErrorMessage'
   /api/city/:
     get:
       tags:
@@ -313,8 +377,16 @@ paths:
           description: Entity created successfully.
         '400':
           description: Bad data provied. Check request body.
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/StandardErrorMessage'
         '409':
           description: City with that name already exists. City name must be unique.
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/StandardErrorMessage'
           
   /api/station/{id}/fuel:
     get:
@@ -341,6 +413,10 @@ paths:
                   $ref: '#/components/schemas/Fuel'
         '404':
           description: Gas station not found. Invalid id supplied.
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/StandardErrorMessage'
   /api/station/city/{cityName}:
     get:
       tags:
@@ -365,6 +441,10 @@ paths:
                   $ref: '#/components/schemas/GasStation'
         '404':
           description: City not found.
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/StandardErrorMessage'
   /api/fuel/{id}/price:
     get:
       tags:
@@ -388,6 +468,10 @@ paths:
                 $ref: '#/components/schemas/FuelReadDto'
         '404':
           description: Fuel not found. Invalid Id supplied.
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/StandardErrorMessage'
   /api/fuel/{id}/price/{date}:
     get:
       tags:
@@ -417,8 +501,16 @@ paths:
                 $ref: '#/components/schemas/FuelReadDto'
         '404':
           description: Fuel not found. Invalid Id supplied.
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/StandardErrorMessage'
         '400':
           description: Invalid date supplied. Make sure the date is it the following format 'yyyy-MM-dd'.
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/StandardErrorMessage'
 components:
   schemas:
     GasStationUpdateDto:
@@ -536,3 +628,13 @@ components:
         newPrice:
           type: number
           format: double
+    StandardErrorMessage:
+      type: object
+      properties:
+        message:
+          type: string
+        httpStatus:
+          type: string
+        timestamp:
+          type: string
+          format: date-time

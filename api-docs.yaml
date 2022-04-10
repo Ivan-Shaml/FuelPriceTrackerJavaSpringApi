@@ -7,6 +7,56 @@ servers:
   - url: http://localhost:8080
     description: Local Tomcat instance
 paths:
+  /api/trip/metric/:
+    put:
+      tags:
+        - Trip Cost
+      summary: Calculate trip cost based on distance in km and fuel consupmtion per 100 km
+      operationId: calculateFuelCostMetric
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FuelCostMetricReadDto'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/TripCostReadDto'
+        '404':
+          description: Fuel not found. Invalid id supplied.
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/StandardErrorMessage'
+  /api/trip/imperial/:
+    put:
+      tags:
+        - Trip Cost
+      summary: Calculate trip cost based on distance in miles and gas mileage
+      operationId: calculateFuelCostImperial
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FuelCostImperialReadDto'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/TripCostReadDto'
+        '404':
+          description: Fuel not found. Invalid id supplied.
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/StandardErrorMessage'
   /api/station/{id}:
     get:
       tags:
@@ -88,7 +138,7 @@ paths:
             'application/json':
               schema:
                 $ref: '#/components/schemas/StandardErrorMessage'
-        
+
   /api/fuel/{id}:
     get:
       tags:
@@ -181,7 +231,7 @@ paths:
       parameters:
         - name: id
           in: path
-          description: Id of fuel to update 
+          description: Id of fuel to update
           required: true
           schema:
             type: integer
@@ -305,7 +355,7 @@ paths:
       responses:
         '201':
           description: Created sucessfully
-        '400': 
+        '400':
           description: Invalid data provided. Check request body.
           content:
             'application/json':
@@ -387,7 +437,7 @@ paths:
             'application/json':
               schema:
                 $ref: '#/components/schemas/StandardErrorMessage'
-          
+
   /api/station/{id}/fuel:
     get:
       tags:
@@ -616,6 +666,30 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/PriceHistoryReadDto'
+    FuelCostMetricReadDto:
+      type: object
+      properties:
+        litersPerOneHundredKm:
+          type: number
+          format: double
+        distanceInKm:
+          type: number
+          format: double
+        fuelId:
+          type: integer
+          format: int32
+    FuelCostImperialReadDto:
+      type: object
+      properties:
+        milesPerGallon:
+          type: number
+          format: double
+        distanceInMiles:
+          type: number
+          format: double
+        fuelId:
+          type: integer
+          format: int32
     PriceHistoryReadDto:
       type: object
       properties:
@@ -638,3 +712,9 @@ components:
         timestamp:
           type: string
           format: date-time
+    TripCostReadDto:
+      type: object
+      properties:
+        tripCost:
+          type: number
+          format: double
